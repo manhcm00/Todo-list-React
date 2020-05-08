@@ -9,6 +9,7 @@ export class TodoList extends Component {
 		this.state = {
 			newItem: '',
 			currentFliter: 'All',
+			checkAll: false,
 			todoList: [
 				{ title: 'Hang out', isCompleted: true },
 				{ title: 'Go shopping', isCompleted: false },
@@ -20,6 +21,8 @@ export class TodoList extends Component {
 		this.onKeyUpHandler = this.onKeyUpHandler.bind(this);
 		this.onChange = this.onChange.bind(this);
 		this.onClick = this.onClick.bind(this);
+		this.selectAll = this.selectAll.bind(this);
+		this.removeItem = this.removeItem.bind(this);
 	}
 
 	clickCheckBoxHandler(item) {
@@ -69,27 +72,58 @@ export class TodoList extends Component {
 		});
 	}
 
+	selectAll() {
+		let checkAll = !this.state.checkAll;
+		if (checkAll === true) {
+			this.setState({
+				checkAll: checkAll,
+				todoList: [
+					...this.state.todoList.map((item) => {
+						return { title: item.title, isCompleted: true };
+					})
+				]
+			});
+		} else {
+			this.setState({
+				checkAll: checkAll,
+				todoList: [
+					...this.state.todoList.map((item) => {
+						return { title: item.title, isCompleted: false };
+					})
+				]
+			});
+		}
+	}
+
+	removeItem(item) {
+		const { todoList } = this.state;
+		return (e) => {
+			const index = todoList.indexOf(item);
+			this.setState({
+				todoList: [ ...todoList.slice(0, index), ...todoList.slice(index + 1) ]
+			});
+		};
+	}
+
 	render() {
-        const { todoList, newItem, currentFliter } = this.state;
-        let currentList = todoList;
-        if (currentFliter === 'All') {
-            currentList = todoList;
-        }
-        else if (currentFliter === 'Active') {
-            currentList = todoList.filter((item) => {
-                return !item.isCompleted;
-            })
-        }
-        else {
-            currentList = todoList.filter((item) => {
-                return item.isCompleted;
-            })
-        }
+		const { todoList, newItem, currentFliter } = this.state;
+		let currentList = todoList;
+		if (currentFliter === 'All') {
+			currentList = todoList;
+		} else if (currentFliter === 'Active') {
+			currentList = todoList.filter((item) => {
+				return !item.isCompleted;
+			});
+		} else {
+			currentList = todoList.filter((item) => {
+				return item.isCompleted;
+			});
+		}
 		return (
 			<div className="todoList">
 				<h1>Todo List</h1>
 				<div className="Header">
-					<img src={tick} alt="tick" />
+					<img src={tick} alt="tick" onClick={this.selectAll} />
 					<input
 						type="text"
 						placeholder="Add a new item"
@@ -99,7 +133,12 @@ export class TodoList extends Component {
 					/>
 				</div>
 				{currentList.map((item, index) => (
-					<TodoItem key={index} item={item} onClick={this.clickCheckBoxHandler(item)} />
+					<TodoItem
+						key={index}
+						item={item}
+						onClick={this.clickCheckBoxHandler(item)}
+						removeItem={this.removeItem(item)}
+					/>
 				))}
 				<div className="Footer">
 					<div>{todoList.filter((item) => !item.isCompleted).length} items left</div>
